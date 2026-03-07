@@ -1111,6 +1111,7 @@ export default function App() {
 
               setIsSubmittingBooking(true);
               try {
+                const totalDistance = distanceResult ? (isReturn ? distanceResult.distanceKm * 2 : distanceResult.distanceKm) : 0;
                 const { error } = await supabase.from('bookings').insert({
                   pickup_location: distanceResult.pickupDisplay,
                   dropoff_location: distanceResult.dropoffDisplay,
@@ -1122,6 +1123,8 @@ export default function App() {
                   return_date: returnDate || null,
                   return_time: returnTime || null,
                   price: parseFloat(selectedVehicle.price.replace(/[^0-9.]/g, '')),
+                  vehicle_type: selectedVehicle.type,
+                  distance: totalDistance,
                   first_name: firstName,
                   last_name: lastName,
                   email: bookingEmail,
