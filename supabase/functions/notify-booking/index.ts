@@ -1,4 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3"
+
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || '';
+const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') || '';
+// We use the anon key or service role key if available. Webhooks usually provide Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || SUPABASE_ANON_KEY;
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") || "dummy_resend_api_key";
 const META_WA_ACCESS_TOKEN = Deno.env.get("META_WA_ACCESS_TOKEN") || "dummy_meta_token";
@@ -8,6 +16,7 @@ const OWNER_EMAIL = Deno.env.get("OWNER_EMAIL") || "owner@primetransfers.net";
 const FROM_EMAIL = "bookings@primetransfers.net";
 
 interface Booking {
+  id: string | number;
   first_name: string;
   last_name: string;
   phone: string;
@@ -101,6 +110,53 @@ async function sendWhatsApp(to: string, text: string) {
 
 serve(async (req) => {
   try {
+    // Handle GET Request (Customer clicks confirmation link)
+    if (req.method === 'GET') {
+      const url = new URL(req.url);
+      const confirmId = url.searchParams.get('confirm');
+
+      if (confirmId) {
+        console.log(`Confirming booking ID: ${confirmId}`);
+        const { error } = await supabase
+          .from('bookings')
+          .update({ status: 'confirmed' })
+          .eq('id', confirmId);
+
+        if (error) {
+          console.error("Error confirming booking:", error);
+          return new Response("An error occurred while confirming your booking. Please try again or contact support.", { status: 500 });
+        }
+
+        const html = `
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Booking Confirmed</title>
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 40px 20px; background: #f9fafb; color: #111827; }
+              .container { max-width: 500px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+              .icon { color: #10B981; font-size: 48px; margin-bottom: 20px; }
+              h1 { margin-top: 0; font-size: 24px; }
+              p { color: #4B5563; line-height: 1.5; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="icon">✓</div>
+              <h1>Booking Confirmed!</h1>
+              <p>Thank you. Your booking has been successfully confirmed. You will receive a final confirmation email shortly.</p>
+            </div>
+          </body>
+          </html>
+        `;
+        return new Response(html, { headers: { "Content-Type": "text/html" } });
+      }
+      return new Response("Invalid confirmation link.", { status: 400 });
+    }
+
+    // Handle POST Request (Database Webhook from Supabase)
     const payload = await req.json();
     console.log("Webhook payload:", payload);
 
@@ -110,26 +166,31 @@ serve(async (req) => {
 
       // 1. Customer Booking Confirmation Request Email
       if (b.email) {
-        await sendEmail(b.email, "Action Required: Please Confirm Your Prime Transfers Booking", `Hello ${b.first_name},\n\nPlease review your booking details and confirm your reservation:\n\n${details}`);
+        const confirmUrl = `${SUPABASE_URL}/functions/v1/notify-booking?confirm=${b.id}`;
+        await sendEmail(b.email, "Action Required: Please Confirm Your Prime Transfers Booking", `Hello ${b.first_name},\n\nPlease review your booking details and click the link below to confirm your reservation:\n\n${confirmUrl}\n\n${details}`);
       }
 
-      // 3. Owner Email Notification
-      await sendEmail(OWNER_EMAIL, "New Booking Received!", `A new booking has been submitted:\n\n${details}`);
-
-      // 4. WhatsApp Owner Notification
-      await sendWhatsApp(OWNER_PHONE_NUMBER, `New Booking Received!\n\n${details}`);
+      // No owner notifications sent yet to prevent spam
 
     } else if (payload.type === 'UPDATE') {
       const oldRec: Booking = payload.old_record || {} as Booking;
       const newRec: Booking = payload.record;
 
-      // 2. Customer Final Booking Confirmation Email
+      // 2. Customer Final Booking Confirmation Email & Owner Notifications
       if (oldRec.status !== 'confirmed' && newRec.status === 'confirmed') {
+        const details = formatBookingDetails(newRec);
+
+        // Notify Customer
         if (newRec.email) {
-          const details = formatBookingDetails(newRec);
           const contactInfo = `\n\nCompany Contact Information:\nPhone: +359 88 254 5355\nEmail: bookings@primetransfers.net\nPrime Transfers`;
           await sendEmail(newRec.email, "Booking Confirmed: Prime Transfers", `Hello ${newRec.first_name},\n\nYour booking is fully confirmed! Here are your details:\n\n${details}${contactInfo}`);
         }
+
+        // Notify Owner via Email
+        await sendEmail(OWNER_EMAIL, "New Confirmed Booking Received!", `A new booking has been confirmed by the customer:\n\n${details}`);
+
+        // Notify Owner via WhatsApp
+        await sendWhatsApp(OWNER_PHONE_NUMBER, `New Confirmed Booking!\n\n${details}`);
       }
     }
 
