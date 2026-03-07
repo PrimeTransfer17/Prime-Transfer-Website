@@ -1,10 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") || "dummy_resend_api_key";
-const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID") || "dummy_twilio_sid";
-const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN") || "dummy_twilio_token";
-const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER") || "whatsapp:+14155238886";
-const OWNER_PHONE_NUMBER = Deno.env.get("OWNER_PHONE_NUMBER") || "whatsapp:+359882545355";
+const META_WA_ACCESS_TOKEN = Deno.env.get("META_WA_ACCESS_TOKEN") || "dummy_meta_token";
+const META_WA_PHONE_NUMBER_ID = Deno.env.get("META_WA_PHONE_NUMBER_ID") || "dummy_phone_id";
+const OWNER_PHONE_NUMBER = Deno.env.get("OWNER_PHONE_NUMBER") || "359882545355"; // MUST be without the + sign for Meta API
 const OWNER_EMAIL = Deno.env.get("OWNER_EMAIL") || "owner@primetransfers.net";
 const FROM_EMAIL = "bookings@primetransfers.net";
 
@@ -74,21 +73,27 @@ async function sendEmail(to: string, subject: string, text: string) {
 
 async function sendWhatsApp(to: string, text: string) {
   try {
-    const url = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
-    const data = new URLSearchParams();
-    data.append("To", to);
-    data.append("From", TWILIO_PHONE_NUMBER);
-    data.append("Body", text);
-
+    const url = `https://graph.facebook.com/v19.0/${META_WA_PHONE_NUMBER_ID}/messages`;
     const res = await fetch(url, {
       method: "POST",
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Authorization": "Basic " + btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`),
+        "Authorization": `Bearer ${META_WA_ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
       },
-      body: data.toString(),
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: to,
+        type: "text",
+        text: {
+          preview_url: false,
+          body: text
+        }
+      }),
     });
     console.log(`WhatsApp to ${to} sent with status ${res.status}`);
+    const resBody = await res.json();
+    console.log("WhatsApp Response:", resBody);
   } catch (error) {
     console.error("Error sending WhatsApp:", error);
   }
