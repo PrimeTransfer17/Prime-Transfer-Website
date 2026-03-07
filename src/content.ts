@@ -60,18 +60,6 @@ export const content = {
           title: 'Междуградски трансфери',
           desc: 'Пътувайте комфортно между градовете, без чакане, без прехвърляне и без стрес. Подходящо за работа, почивка или специални поводи.'
         },
-        {
-          title: 'VIP и бизнес трансфери',
-          desc: 'Дискретен, елегантен транспорт с висок клас автомобили. Перфектен за корпоративни клиенти, специални събития и важни гости.'
-        },
-        {
-          title: 'Трансфери за групи',
-          desc: 'Предлагаме транспорт с по-големи автомобили за семейства, групи туристи или корпоративни пътувания.'
-        },
-        {
-          title: 'Почасов наем с шофьор',
-          desc: 'Възползвайте се от личен шофьор за няколко часа или цял ден – за бизнес срещи, събития или обиколка на забележителности.'
-        }
       ],
       learnMore: 'Научете повече'
     },
@@ -80,17 +68,17 @@ export const content = {
       desc: 'Пътувайте комфортно и сигурно с нашия модерен автопарк. Всички автомобили са редовно обслужвани, чисти и оборудвани с необходимите удобства.',
       items: [
         {
-          class: 'Sedan – Комфорт и сигурност',
+          class: 'Mercedes C Class – Комфорт и сигурност',
           desc: 'Идеален за индивидуални пътувания или двойки.',
           features: ['До 3 пътници', 'Климатик, USB, Wi-Fi', 'Просторно багажно отделение']
         },
         {
-          class: 'Minivan – За семейства и групи',
+          class: 'Opel Vivaro – За семейства и групи',
           desc: 'Перфектен избор за повече хора и багаж.',
           features: ['До 7 пътници', 'Простор и удобство', 'Допълнителни опции за багаж']
         },
         {
-          class: 'VIP Class – Премиум комфорт',
+          class: 'Mercedes Vito – Премиум комфорт',
           desc: 'Луксозни автомобили за специални гости и бизнес клиенти.',
           features: ['Кожа, тишина и максимален комфорт', 'Професионално обслужване', 'До 3 пътници']
         }
@@ -126,15 +114,23 @@ export const content = {
         },
         {
           q: 'Как се изчислява цената?',
-          a: 'Цената зависи от разстоянието, вида автомобил и броя пътници. Можете да получите точна цена чрез нашия калкулатор или като се свържете с нас.'
+          a: 'Цената се изчислява само въз основа на вида автомобил и изминатото разстояние. Можете да получите точна цена чрез нашия калкулатор или като се свържете с нас.'
+        },
+        {
+          q: 'Предлагате ли вода по време на пътуването?',
+          a: 'Всички автомобили разполагат с безплатна бутилирана вода за пътниците.'
+        },
+        {
+          q: 'Какви методи на плащане приемате?',
+          a: 'В брой и Revolut'
         }
       ]
     },
     contact: {
       title: 'Свържете се с нас',
       desc: 'Имате въпрос или желание за резервация? Ще се радваме да помогнем!',
-      phone: 'Телефон',
-      email: 'Имейл',
+      phone: '+359 882 545 355',
+      email: 'transprime17@gmail.com',
       address: 'Адрес',
       workingHours: 'Работно време',
       workingHoursValue: '24/7',
@@ -146,7 +142,9 @@ export const content = {
       rights: 'Всички права запазени.',
       terms: 'Условия за ползване',
       privacy: 'Политика за поверителност',
-      imprint: 'Импринт'
+      imprint: 'Импринт',
+      paymentTitle: 'Методи на плащане',
+      paymentMethods: 'В брой, Revolut'
     }
   },
   en: {
@@ -208,18 +206,6 @@ export const content = {
           title: 'Intercity Transfers',
           desc: 'Travel comfortably between cities without waiting, without transfers, and without stress. Suitable for work, leisure, or special occasions.'
         },
-        {
-          title: 'VIP and Business Transfers',
-          desc: 'Discreet, elegant transport with high-class vehicles. Perfect for corporate clients, special events, and important guests.'
-        },
-        {
-          title: 'Group Transfers',
-          desc: 'We offer transport with larger vehicles for families, tourist groups, or corporate travel.'
-        },
-        {
-          title: 'Hourly Chauffeur Service',
-          desc: 'Take advantage of a personal chauffeur for a few hours or a whole day – for business meetings, events, or sightseeing tours.'
-        }
       ],
       learnMore: 'Learn more'
     },
@@ -228,17 +214,17 @@ export const content = {
       desc: 'Travel comfortably and safely with our modern fleet. All vehicles are regularly serviced, clean, and equipped with the necessary amenities.',
       items: [
         {
-          class: 'Sedan – Comfort and Safety',
+          class: 'Mercedes C Class – Comfort and Safety',
           desc: 'Ideal for individual travel or couples.',
           features: ['Up to 3 passengers', 'Air conditioning, USB, Wi-Fi', 'Spacious luggage compartment']
         },
         {
-          class: 'Minivan – For Families and Groups',
+          class: 'Opel Vivaro – For Families and Groups',
           desc: 'The perfect choice for more people and luggage.',
           features: ['Up to 7 passengers', 'Space and convenience', 'Additional luggage options']
         },
         {
-          class: 'VIP Class – Premium Comfort',
+          class: 'Mercedes Vito – Premium Comfort',
           desc: 'Luxury vehicles for special guests and business clients.',
           features: ['Leather, quietness, and maximum comfort', 'Professional service', 'Up to 3 passengers']
         }
@@ -274,15 +260,23 @@ export const content = {
         },
         {
           q: 'How is the price calculated?',
-          a: 'The price depends on the distance, vehicle type, and number of passengers. You can get an exact price through our calculator or by contacting us.'
+          a: 'The price is calculated only based on the vehicle type and the travel distance. You can get an exact price through our calculator or by contacting us.'
+        },
+        {
+          q: 'Do vehicles provide water?',
+          a: 'All vehicles include free bottled water for passengers.'
+        },
+        {
+          q: 'What payment methods are accepted?',
+          a: 'Cash & Revolut'
         }
       ]
     },
     contact: {
       title: 'Contact Us',
       desc: 'Have a question or want to make a booking? We\'d be happy to help!',
-      phone: 'Phone',
-      email: 'Email',
+      phone: '+359 882 545 355',
+      email: 'transprime17@gmail.com',
       address: 'Address',
       workingHours: 'Working Hours',
       workingHoursValue: '24/7',
@@ -294,7 +288,9 @@ export const content = {
       rights: 'All rights reserved.',
       terms: 'Terms of Service',
       privacy: 'Privacy Policy',
-      imprint: 'Imprint'
+      imprint: 'Imprint',
+      paymentTitle: 'Accepted Payments',
+      paymentMethods: 'Cash, Revolut'
     }
   }
 };
