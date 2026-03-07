@@ -13,6 +13,7 @@ import { LocationAutocomplete, LocationSuggestion } from './components/ui/locati
 import { GlowingEffect } from './components/ui/glowing-effect';
 import { LocationMap } from './components/ui/expand-map';
 import { GlassCalendar } from './components/ui/glass-calendar';
+import { GlassTimePicker } from './components/ui/glass-time-picker';
 import { format, parseISO } from 'date-fns';
 
 // Safe Supabase Configuration
@@ -209,16 +210,24 @@ export default function App() {
   const [lastName, setLastName] = useState('');
   const [bookingEmail, setBookingEmail] = useState('');
   const [bookingPhone, setBookingPhone] = useState('');
+  const [specialRequests, setSpecialRequests] = useState('');
+  const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
 
   // Form Field States
   const [pickup, setPickup] = useState('');
   const [dropoff, setDropoff] = useState('');
   const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
   const [returnDate, setReturnDate] = useState('');
+  const [returnTime, setReturnTime] = useState('');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
   const [isReturnCalendarOpen, setIsReturnCalendarOpen] = useState(false);
+  const [isReturnTimePickerOpen, setIsReturnTimePickerOpen] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
+  const timePickerRef = useRef<HTMLDivElement>(null);
   const returnCalendarRef = useRef<HTMLDivElement>(null);
+  const returnTimePickerRef = useRef<HTMLDivElement>(null);
 
   // Validated location coords from autocomplete
   const [pickupCoords, setPickupCoords] = useState<LocationSuggestion | null>(null);
@@ -234,8 +243,14 @@ export default function App() {
       if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
         setIsCalendarOpen(false);
       }
+      if (timePickerRef.current && !timePickerRef.current.contains(event.target as Node)) {
+        setIsTimePickerOpen(false);
+      }
       if (returnCalendarRef.current && !returnCalendarRef.current.contains(event.target as Node)) {
         setIsReturnCalendarOpen(false);
+      }
+      if (returnTimePickerRef.current && !returnTimePickerRef.current.contains(event.target as Node)) {
+        setIsReturnTimePickerOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -481,7 +496,7 @@ export default function App() {
                             onClick={() => setIsCalendarOpen(!isCalendarOpen)}
                             className={`w-full h-14 pl-12 pr-4 bg-bg border-subtle border rounded-lg text-sm focus:outline-none transition-all text-left flex items-center ${date ? 'text-text-primary' : 'text-text-secondary/80'} ${isCalendarOpen ? 'border-accent shadow-[0_0_15px_rgba(255,90,0,0.15)] ring-1 ring-accent' : ''}`}
                           >
-                            {date ? format(parseISO(date), 'MMM d, yyyy') : (lang === 'bg' ? 'Избери дата' : 'Select Date')}
+                            <span className="truncate">{date ? format(parseISO(date), 'MMM d, yyyy') : (lang === 'bg' ? 'Избери дата' : 'Select Date')}</span>
                           </button>
 
                           <AnimatePresence>
@@ -505,55 +520,122 @@ export default function App() {
                           </AnimatePresence>
                         </div>
 
+                        <div className="w-full md:w-32 relative group shrink-0" ref={timePickerRef}>
+                          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none z-10">
+                            <Clock className="w-5 h-5 text-text-secondary group-focus-within:text-accent transition-colors" aria-hidden="true" />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setIsTimePickerOpen(!isTimePickerOpen)}
+                            className={`w-full h-14 pl-12 pr-4 bg-bg border-subtle border rounded-lg text-sm focus:outline-none transition-all text-left flex items-center ${time ? 'text-text-primary' : 'text-text-secondary/80'} ${isTimePickerOpen ? 'border-accent shadow-[0_0_15px_rgba(255,90,0,0.15)] ring-1 ring-accent' : ''}`}
+                          >
+                            <span>{time || (lang === 'bg' ? 'Час' : 'Time')}</span>
+                          </button>
+
+                          <AnimatePresence>
+                            {isTimePickerOpen && (
+                              <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 10 }}
+                                transition={{ duration: 0.2 }}
+                                className="absolute bottom-full mb-2 z-50 left-0 md:left-auto md:right-0" // Align right on desktop to avoid cutting off screen
+                              >
+                                <GlassTimePicker
+                                  selectedTime={time}
+                                  onTimeSelect={(t) => {
+                                    setTime(t);
+                                    setIsTimePickerOpen(false);
+                                  }}
+                                />
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+
                         {/* Return date — inline, slides in next to Select Date */}
                         <AnimatePresence>
                           {isReturn && (
                             <motion.div
                               key="return-date-inline"
-                              ref={returnCalendarRef}
                               initial={{ opacity: 0, width: 0, minWidth: 0 }}
                               animate={{ opacity: 1, width: 'auto', minWidth: 160 }}
                               exit={{ opacity: 0, width: 0, minWidth: 0 }}
                               transition={{ duration: 0.25, ease: 'easeInOut' }}
-                              className="flex-1 relative group"
+                              className="flex flex-col md:flex-row gap-2 flex-[2]"
                               style={{ overflow: 'visible' }}
                             >
-                              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none z-10">
-                                <Calendar className="w-5 h-5 text-accent transition-colors" aria-hidden="true" />
+                              <div className="flex-1 relative group" ref={returnCalendarRef}>
+                                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none z-10">
+                                  <Calendar className="w-5 h-5 text-accent transition-colors" aria-hidden="true" />
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setIsReturnCalendarOpen(!isReturnCalendarOpen)}
+                                  className={`w-full h-14 pl-12 pr-3 bg-bg border rounded-lg text-sm focus:outline-none transition-all text-left flex items-center leading-tight ${returnDate ? 'text-text-primary border-green-500/50' : 'text-text-secondary/80 border-accent/40'} ${isReturnCalendarOpen ? 'border-accent shadow-[0_0_15px_rgba(255,90,0,0.15)] ring-1 ring-accent' : ''}`}
+                                >
+                                  <span className="line-clamp-2">
+                                    {returnDate ? format(parseISO(returnDate), 'MMM d, yyyy') : (lang === 'bg' ? 'Избери дата на връщане' : 'Select return date')}
+                                  </span>
+                                </button>
+                                <AnimatePresence>
+                                  {isReturnCalendarOpen && (
+                                    <motion.div
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: 10 }}
+                                      transition={{ duration: 0.2 }}
+                                      className="absolute bottom-full mb-2 z-50 left-0"
+                                    >
+                                      <GlassCalendar
+                                        selectedDate={returnDate ? parseISO(returnDate) : undefined}
+                                        onDateSelect={(d: Date) => {
+                                          setReturnDate(format(d, 'yyyy-MM-dd'));
+                                          setIsReturnCalendarOpen(false);
+                                        }}
+                                      />
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
                               </div>
-                              <button
-                                type="button"
-                                onClick={() => setIsReturnCalendarOpen(!isReturnCalendarOpen)}
-                                className={`w-full h-14 pl-12 pr-3 bg-bg border rounded-lg text-sm focus:outline-none transition-all text-left flex items-center leading-tight ${returnDate ? 'text-text-primary border-green-500/50' : 'text-text-secondary/80 border-accent/40'} ${isReturnCalendarOpen ? 'border-accent shadow-[0_0_15px_rgba(255,90,0,0.15)] ring-1 ring-accent' : ''}`}
-                              >
-                                <span className="line-clamp-2">
-                                  {returnDate ? format(parseISO(returnDate), 'MMM d, yyyy') : (lang === 'bg' ? 'Избери дата на връщане' : 'Select return date')}
-                                </span>
-                              </button>
-                              <AnimatePresence>
-                                {isReturnCalendarOpen && (
-                                  <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 10 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="absolute bottom-full mb-2 z-50 left-0"
-                                  >
-                                    <GlassCalendar
-                                      selectedDate={returnDate ? parseISO(returnDate) : undefined}
-                                      onDateSelect={(d: Date) => {
-                                        setReturnDate(format(d, 'yyyy-MM-dd'));
-                                        setIsReturnCalendarOpen(false);
-                                      }}
-                                    />
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
+
+                              <div className="w-full md:w-32 relative group shrink-0" ref={returnTimePickerRef}>
+                                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none z-10">
+                                  <Clock className="w-5 h-5 text-accent transition-colors" aria-hidden="true" />
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setIsReturnTimePickerOpen(!isReturnTimePickerOpen)}
+                                  className={`w-full h-14 pl-12 pr-4 bg-bg border border-accent/40 rounded-lg text-sm focus:outline-none transition-all text-left flex items-center ${returnTime ? 'text-text-primary' : 'text-text-secondary/80'} ${isReturnTimePickerOpen ? 'border-accent shadow-[0_0_15px_rgba(255,90,0,0.15)] ring-1 ring-accent' : ''}`}
+                                >
+                                  <span>{returnTime || (lang === 'bg' ? 'Час' : 'Time')}</span>
+                                </button>
+
+                                <AnimatePresence>
+                                  {isReturnTimePickerOpen && (
+                                    <motion.div
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: 10 }}
+                                      transition={{ duration: 0.2 }}
+                                      className="absolute bottom-full mb-2 z-50 left-0 md:left-auto md:right-0" // Align right on desktop to avoid cutting off screen
+                                    >
+                                      <GlassTimePicker
+                                        selectedTime={returnTime}
+                                        onTimeSelect={(t) => {
+                                          setReturnTime(t);
+                                          setIsReturnTimePickerOpen(false);
+                                        }}
+                                      />
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </div>
                             </motion.div>
                           )}
                         </AnimatePresence>
 
-                        <div className="flex-1 relative group min-w-[145px]">
+                        <div className="flex-1 relative group min-w-[130px] shrink-0">
                           <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                             <Users className="w-5 h-5 text-text-secondary group-focus-within:text-accent transition-colors" aria-hidden="true" />
                           </div>
@@ -1018,10 +1100,47 @@ export default function App() {
               </div>
             </div>
 
-            <form onSubmit={(e) => {
+            <form onSubmit={async (e) => {
               e.preventDefault();
-              setIsBookingDetailsOpen(false);
-              setIsBooked(true);
+              if (!supabase) {
+                console.error("Supabase not initialized");
+                setIsBookingDetailsOpen(false);
+                setIsBooked(true);
+                return;
+              }
+
+              setIsSubmittingBooking(true);
+              try {
+                const { error } = await supabase.from('bookings').insert({
+                  pickup_location: distanceResult.pickupDisplay,
+                  dropoff_location: distanceResult.dropoffDisplay,
+                  pickup_date: date,
+                  pickup_time: time || 'Not specified',
+                  passengers: passengers,
+                  luggage: 0,
+                  is_return: isReturn,
+                  return_date: returnDate || null,
+                  return_time: returnTime || null,
+                  price: parseFloat(selectedVehicle.price.replace(/[^0-9.]/g, '')),
+                  first_name: firstName,
+                  last_name: lastName,
+                  email: bookingEmail,
+                  phone: bookingPhone,
+                  special_requests: specialRequests || null
+                });
+
+                if (error) {
+                  console.error('Error inserting booking:', error);
+                  alert(lang === 'bg' ? 'Възникна грешка при изпращането. Моля, опитайте отново.' : 'An error occurred while sending your request. Please try again.');
+                } else {
+                  setIsBookingDetailsOpen(false);
+                  setIsBooked(true);
+                }
+              } catch (err) {
+                console.error('Unexpected error:', err);
+              } finally {
+                setIsSubmittingBooking(false);
+              }
             }} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -1042,8 +1161,27 @@ export default function App() {
                 <input type="email" value={bookingEmail} onChange={e => setBookingEmail(e.target.value)} className="w-full h-12 px-4 bg-bg border-subtle rounded-lg text-[16px] focus:outline-none input-glow" />
               </div>
 
-              <button type="submit" className="w-full h-14 mt-4 bg-accent hover:bg-accent-hover text-white rounded-lg font-semibold transition-all duration-200 shadow-lg">
-                {lang === 'bg' ? 'Потвърди резервацията' : 'Confirm Booking'}
+              <div>
+                <label className="block text-sm font-medium mb-1">{lang === 'bg' ? 'Бележки и специални изисквания' : 'Special Requests & Details'}</label>
+                <textarea
+                  value={specialRequests}
+                  onChange={e => setSpecialRequests(e.target.value)}
+                  placeholder={lang === 'bg' ? 'Напр. количество и тип багаж, детско столче и др.' : 'e.g. luggage quantity & type, child seat needed...'}
+                  className="w-full p-4 bg-bg border-subtle rounded-lg text-[16px] focus:outline-none input-glow min-h-[100px] resize-y"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmittingBooking}
+                className="w-full h-14 mt-4 bg-accent hover:bg-accent-hover disabled:bg-accent/50 text-white rounded-lg font-semibold transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
+              >
+                {isSubmittingBooking && (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                )}
+                {isSubmittingBooking
+                  ? (lang === 'bg' ? 'Изпращане...' : 'Sending...')
+                  : (lang === 'bg' ? 'Потвърди резервацията' : 'Confirm Booking')}
               </button>
             </form>
           </motion.div>
