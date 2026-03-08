@@ -129,8 +129,24 @@ Deno.serve(async (req) => {
           return new Response("Invalid confirmation link.", { status: 400 });
         }
 
-        console.log(`Booking ${confirmId} confirmed successfully. Redirecting...`);
-        // REDIRECT using standard headers for maximum compatibility
+        const confirmedBooking: Booking = data[0];
+        console.log(`Booking ${confirmId} confirmed successfully. Sending notifications...`);
+
+        const details = formatBookingDetails(confirmedBooking);
+
+        // 1. Notify Customer (Final Confirmation)
+        if (confirmedBooking.email) {
+          const contactInfo = `\n\nCompany Contact Information:\nPhone: +359 88 254 5355\nEmail: bookings@primetransfers.net\nPrime Transfers`;
+          await sendEmail(confirmedBooking.email, "Booking Confirmed: Prime Transfers", `Hello ${confirmedBooking.first_name},\n\nYour booking is fully confirmed! Here are your details:\n\n${details}${contactInfo}`);
+        }
+
+        // 2. Notify Owner via Email
+        await sendEmail(OWNER_EMAIL, "New Confirmed Booking Received!", `A new booking has been confirmed by the customer:\n\n${details}`);
+
+        // 3. Notify Owner via WhatsApp
+        await sendWhatsApp(OWNER_PHONE_NUMBER, `New Confirmed Booking!\n\n${details}`);
+
+        // REDIRECT to website
         return new Response(null, {
           status: 303,
           headers: {
@@ -144,7 +160,7 @@ Deno.serve(async (req) => {
 
     // Handle POST Request (Database Webhook from Supabase)
     const payload = await req.json();
-    console.log("Webhook payload:", payload);
+    console.log("Webhook payload received:", payload.type, "for ID:", payload.record?.id);
 
     if (payload.type === 'INSERT') {
       const b: Booking = payload.record;
@@ -156,32 +172,13 @@ Deno.serve(async (req) => {
         const confirmUrl = `${cleanUrl}/functions/v1/notify-booking?confirm=${b.id}`;
         await sendEmail(b.email, "Action Required: Please Confirm Your Prime Transfers Booking", `Hello ${b.first_name},\n\nPlease review your booking details and click the link below to confirm your reservation:\n\n${confirmUrl}\n\n${details}`);
       }
-
     } else if (payload.type === 'UPDATE') {
-      const oldRec: Booking = payload.old_record || {} as Booking;
-      const newRec: Booking = payload.record;
-
-      // 2. Customer Final Booking Confirmation Email & Owner Notifications
-      if (oldRec.status !== 'confirmed' && newRec.status === 'confirmed') {
-        const details = formatBookingDetails(newRec);
-
-        // Notify Customer
-        if (newRec.email) {
-          const contactInfo = `\n\nCompany Contact Information:\nPhone: +359 88 254 5355\nEmail: bookings@primetransfers.net\nPrime Transfers`;
-          await sendEmail(newRec.email, "Booking Confirmed: Prime Transfers", `Hello ${newRec.first_name},\n\nYour booking is fully confirmed! Here are your details:\n\n${details}${contactInfo}`);
-        }
-
-        // Notify Owner via Email
-        await sendEmail(OWNER_EMAIL, "New Confirmed Booking Received!", `A new booking has been confirmed by the customer:\n\n${details}`);
-
-        // Notify Owner via WhatsApp
-        await sendWhatsApp(OWNER_PHONE_NUMBER, `New Confirmed Booking!\n\n${details}`);
-      }
+      console.log("UPDATE payload received. Skipping as notifications are handled by direct GET response.");
     }
 
     return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
   } catch (error) {
-    console.log("Error processing request:", error);
+    console.error("Critical Error in Function:", error);
     return new Response(JSON.stringify({ error: error.message }), { status: 400 });
   }
 })
