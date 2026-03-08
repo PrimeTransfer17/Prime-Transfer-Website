@@ -108,7 +108,7 @@ async function sendWhatsApp(to: string, text: string) {
   }
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   try {
     // Handle GET Request (Customer clicks confirmation link)
     if (req.method === 'GET') {
@@ -116,60 +116,19 @@ serve(async (req) => {
       const confirmId = url.searchParams.get('confirm');
 
       if (confirmId) {
-        console.log(`Confirming booking ID: ${confirmId}`);
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('bookings')
           .update({ status: 'confirmed' })
-          .eq('id', confirmId);
+          .eq('id', confirmId)
+          .select();
 
-        if (error) {
-          console.error("Error confirming booking:", error);
-          return new Response("An error occurred while confirming your booking. Please try again or contact support.", { status: 500 });
+        if (error || !data || data.length === 0) {
+          console.error("Error confirming booking:", error || "No booking found");
+          return new Response("Invalid confirmation link.", { status: 400 });
         }
 
-        const html = `
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Booking Confirmed | Prime Transfers</title>
-            <style>
-              :root { --accent: #FF5A00; --bg: #f9fafb; --text: #111827; --text-secondary: #4B5563; }
-              body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 40px 20px; background: var(--bg); color: var(--text); line-height: 1.6; }
-              .container { max-width: 500px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); border-top: 5px solid var(--accent); }
-              .icon { background: #ECFDF5; color: #10B981; width: 64px; hieght: 64px; line-height: 64px; border-radius: 50%; font-size: 32px; margin: 0 auto 24px; }
-              h1 { margin-top: 0; font-size: 26px; font-weight: 800; color: var(--text); }
-              .content { margin-bottom: 30px; }
-              .divider { height: 1px; background: #E5E7EB; margin: 24px 0; }
-              .btn { display: inline-block; background: var(--accent); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: transform 0.2s; }
-              .btn:hover { transform: translateY(-2px); opacity: 0.9; }
-              .footer { font-size: 14px; color: var(--text-secondary); margin-top: 20px; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="icon">✓</div>
-              <div class="content">
-                <h1>Booking Confirmed!</h1>
-                <p>Thank you. Your booking has been successfully confirmed. You will receive a final confirmation email with all details shortly.</p>
-                <div class="divider"></div>
-                <h1>Резервацията е потвърдена!</h1>
-                <p>Благодарим ви. Вашата резервация е успешно потвърдена. След малко ще получите финален имейл с всички подробности.</p>
-              </div>
-              <a href="https://primetransfers.net" class="btn">Back to Website / Към сайта</a>
-              <div class="footer">
-                © ${new Date().getFullYear()} Prime Transfers
-              </div>
-            </div>
-          </body>
-          </html>
-        `;
-        return new Response(html, {
-          headers: {
-            "Content-Type": "text/html; charset=utf-8"
-          }
-        });
+        // REDIRECT instead of returning HTML to avoid MIME/character issues
+        return Response.redirect("https://primetransfers.net?confirmed=true", 303);
       }
       return new Response("Invalid confirmation link.", { status: 400 });
     }
@@ -184,11 +143,10 @@ serve(async (req) => {
 
       // 1. Customer Booking Confirmation Request Email
       if (b.email) {
-        const confirmUrl = `${SUPABASE_URL}/functions/v1/notify-booking?confirm=${b.id}`;
+        const cleanUrl = SUPABASE_URL.replace(/\/$/, '');
+        const confirmUrl = `${cleanUrl}/functions/v1/notify-booking?confirm=${b.id}`;
         await sendEmail(b.email, "Action Required: Please Confirm Your Prime Transfers Booking", `Hello ${b.first_name},\n\nPlease review your booking details and click the link below to confirm your reservation:\n\n${confirmUrl}\n\n${details}`);
       }
-
-      // No owner notifications sent yet to prevent spam
 
     } else if (payload.type === 'UPDATE') {
       const oldRec: Booking = payload.old_record || {} as Booking;
@@ -214,7 +172,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
   } catch (error) {
-    console.log("Error processing webhook:", error);
+    console.log("Error processing request:", error);
     return new Response(JSON.stringify({ error: error.message }), { status: 400 });
   }
 })

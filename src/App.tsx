@@ -212,6 +212,7 @@ export default function App() {
   const [bookingPhone, setBookingPhone] = useState('');
   const [specialRequests, setSpecialRequests] = useState('');
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
+  const [showFinalConfirmedModal, setShowFinalConfirmedModal] = useState(false);
 
   // Form Field States
   const [pickup, setPickup] = useState('');
@@ -237,6 +238,17 @@ export default function App() {
   const [distanceResult, setDistanceResult] = useState<DistanceResult | null>(null);
   const [isCalculatingDistance, setIsCalculatingDistance] = useState(false);
   const [vehicleResults, setVehicleResults] = useState<VehicleResult[]>(() => computeVehicleResults(50)); // default 50km placeholder
+
+  // Handle email confirmation redirect
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('confirmed') === 'true') {
+      setShowFinalConfirmedModal(true);
+      // Clean up the URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -1187,6 +1199,36 @@ export default function App() {
                   : (lang === 'bg' ? 'Потвърди резервацията' : 'Confirm Booking')}
               </button>
             </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Final Confirmation Success Modal (From Email Link) */}
+      {showFinalConfirmedModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="w-full max-w-md bg-surface p-8 rounded-2xl border-border shadow-2xl text-center relative overflow-hidden"
+          >
+            <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
+            <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle2 className="w-8 h-8 text-green-500" />
+            </div>
+            <h3 className="text-2xl font-bold font-heading mb-4">
+              {lang === 'bg' ? 'Резервацията е потвърдена!' : 'Booking Fully Confirmed!'}
+            </h3>
+            <p className="text-text-secondary mb-8 leading-relaxed">
+              {lang === 'bg'
+                ? 'Благодарим ви! Вашата резервация е успешно потвърдена. Ще се видим скоро!'
+                : 'Thank you! Your booking has been successfully confirmed. We look forward to seeing you soon!'}
+            </p>
+            <button
+              onClick={() => setShowFinalConfirmedModal(false)}
+              className="w-full bg-accent hover:bg-accent-hover text-white py-3 rounded-xl font-semibold transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              {lang === 'bg' ? 'Затвори' : 'Close'}
+            </button>
           </motion.div>
         </div>
       )}
