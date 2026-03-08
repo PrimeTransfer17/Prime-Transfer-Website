@@ -165,7 +165,11 @@ serve(async (req) => {
           </body>
           </html>
         `;
-        return new Response(html, { headers: { "Content-Type": "text/html" } });
+        return new Response(html, {
+          headers: {
+            "Content-Type": "text/html; charset=utf-8"
+          }
+        });
       }
       return new Response("Invalid confirmation link.", { status: 400 });
     }
