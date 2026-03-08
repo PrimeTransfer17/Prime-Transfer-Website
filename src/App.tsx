@@ -274,8 +274,9 @@ export default function App() {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Block submit if addresses haven't been validated via autocomplete
-    if (!pickupCoords || !dropoffCoords) return;
+    // Block submit if addresses haven't been validated via autocomplete, or if date/time is missing
+    if (!pickupCoords || !dropoffCoords || !date || !time) return;
+    if (isReturn && (!returnDate || !returnTime)) return;
 
     setIsSearching(true);
     setIsCalculatingDistance(true);
@@ -670,8 +671,16 @@ export default function App() {
 
                     <div className="flex flex-col">                      <button
                       type="submit"
-                      disabled={isSearching || !pickupCoords || !dropoffCoords}
-                      title={!pickupCoords || !dropoffCoords ? (lang === 'bg' ? 'Моля изберете адреси от падащото меню' : 'Please select locations from the dropdown') : undefined}
+                      disabled={isSearching || !pickupCoords || !dropoffCoords || !date || !time || (isReturn && (!returnDate || !returnTime))}
+                      title={
+                        !pickupCoords || !dropoffCoords
+                          ? (lang === 'bg' ? 'Моля изберете адреси от падащото меню' : 'Please select locations from the dropdown')
+                          : (!date || !time)
+                            ? (lang === 'bg' ? 'Моля изберете дата и час' : 'Please select date and time')
+                            : (isReturn && (!returnDate || !returnTime))
+                              ? (lang === 'bg' ? 'Моля изберете дата и час на връщане' : 'Please select return date and time')
+                              : undefined
+                      }
                       className="h-14 px-8 bg-accent hover:bg-accent-hover disabled:bg-accent/40 disabled:cursor-not-allowed disabled:opacity-60 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition-all duration-200 hover:not-disabled:-translate-y-[2px] shadow-[0_4px_14px_0_rgba(255,90,0,0.2)] lg:w-auto w-full group overflow-hidden relative"
                     >
                       <motion.div

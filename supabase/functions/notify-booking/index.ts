@@ -36,7 +36,7 @@ interface Booking {
 }
 
 const formatBookingDetailsText = (booking: Booking): string => {
-  return `Customer details:
+  let details = `Customer details:
 - first name: ${booking.first_name || 'N/A'}
 - last name: ${booking.last_name || 'N/A'}
 - phone: ${booking.phone || 'N/A'}
@@ -46,10 +46,13 @@ Trip details:
 - pickup location: ${booking.pickup_location || 'N/A'}
 - pickup time: ${booking.pickup_time || 'N/A'}
 - destination: ${booking.dropoff_location || 'N/A'}
-- trip date: ${booking.pickup_date || 'N/A'}
-- return date (if any): ${booking.return_date || 'N/A'}
-- return time (if any): ${booking.return_time || 'N/A'}
-- passengers number: ${booking.passengers || 'N/A'}
+- trip date: ${booking.pickup_date || 'N/A'}\n`;
+
+  if (booking.return_date && booking.return_time) {
+    details += `- return date: ${booking.return_date}\n- return time: ${booking.return_time}\n`;
+  }
+
+  details += `- passengers number: ${booking.passengers || 'N/A'}
 - everything written in the special requests & details section: ${booking.special_requests || 'N/A'}
 
 Vehicle details:
@@ -57,17 +60,32 @@ Vehicle details:
 - price per km: N/A
 - total distance: N/A
 - total price: ${booking.price || 'N/A'}`;
+
+  return details;
 };
 
-const getHtmlTemplate = (booking: Booking, type: 'CONFIRM' | 'SUCCESS', confirmUrl?: string) => {
+type RecipientType = 'CUSTOMER' | 'OWNER';
+
+const getHtmlTemplate = (booking: Booking, type: 'CONFIRM' | 'SUCCESS', recipientType: RecipientType, confirmUrl?: string) => {
   const isSuccess = type === 'SUCCESS';
+  const isOwner = recipientType === 'OWNER';
+
   const statusText = isSuccess ? 'CONFIRMED' : 'ACTION REQUIRED';
   const statusBg = isSuccess ? '#e6fcf5' : '#fff4e6';
   const statusColor = isSuccess ? '#0ca678' : '#fd7e14';
-  const title = isSuccess ? 'Your Booking is Confirmed!' : 'Please Confirm Your Booking';
-  const subtitle = isSuccess
-    ? "Great news! Your professional transfer is all set. We've included the details below for your reference."
-    : "We've received your transfer request. Please review the details below and click the confirm button to finalize your reservation.";
+
+  let title = '';
+  let subtitle = '';
+
+  if (isOwner) {
+    title = 'New Confirmed Booking Received!';
+    subtitle = `Operational Notification: A new transfer booking has been confirmed for ${booking.first_name} ${booking.last_name}. Please review the logistics below.`;
+  } else {
+    title = isSuccess ? 'Your Booking is Confirmed!' : 'Please Confirm Your Booking';
+    subtitle = isSuccess
+      ? `Hi ${booking.first_name}, Great news! Your professional transfer is all set. Thank you for choosing Prime Transfers for your journey! We've included the details below for your reference.`
+      : `Hi ${booking.first_name}, We've received your transfer request. Please review the details below and click the confirm button to finalize your reservation.`;
+  }
 
   const confirmBtnRow = !isSuccess && confirmUrl ? `
     <tr>
@@ -105,6 +123,24 @@ const getHtmlTemplate = (booking: Booking, type: 'CONFIRM' | 'SUCCESS', confirmU
                                 <tr>
                                     <td style="font-size: 16px; line-height: 1.6; color: #64748b; padding-bottom: 32px;">${subtitle}</td>
                                 </tr>
+                                <!-- Customer Details -->
+                                <tr>
+                                    <td style="padding-bottom: 32px;">
+                                        <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; padding-bottom: 12px;">Customer Details</div>
+                                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                            <tr>
+                                                <td width="50%" valign="top">
+                                                    <div style="font-size: 13px; font-weight: 700; color: #1e293b;">${booking.first_name} ${booking.last_name}</div>
+                                                    <div style="font-size: 13px; color: #64748b; padding-top: 4px;">Passenger</div>
+                                                </td>
+                                                <td width="50%" valign="top">
+                                                    <div style="font-size: 13px; color: #1e293b; font-weight: 600;">${booking.phone}</div>
+                                                    <div style="font-size: 13px; color: #64748b; padding-top: 4px;">${booking.email}</div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
                                 <!-- Route Summary -->
                                 <tr>
                                     <td style="background: #f8fafc; border: 1px solid #edf2f7; border-radius: 16px; padding: 24px;">
@@ -127,6 +163,22 @@ const getHtmlTemplate = (booking: Booking, type: 'CONFIRM' | 'SUCCESS', confirmU
                                         </table>
                                     </td>
                                 </tr>
+                                ${booking.return_date && booking.return_time ? `
+                                <tr><td height="16"></td></tr>
+                                <tr>
+                                    <td style="background: #fdf2f2; border: 1px solid #fee2e2; border-radius: 16px; padding: 24px;">
+                                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                            <tr>
+                                                <td width="30" valign="top"><div style="width: 12px; height: 12px; border-radius: 50%; background: #ef4444; border: 3px solid #fecaca; margin-top: 4px;"></div></td>
+                                                <td>
+                                                    <div style="font-size: 10px; color: #991b1b; text-transform: uppercase; font-weight: 800; letter-spacing: 0.8px; padding-bottom: 4px;">Return Details</div>
+                                                    <div style="font-size: 15px; font-weight: 700; color: #1e293b;">${booking.return_date} @ ${booking.return_time}</div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                ` : ''}
                                 <tr><td height="32"></td></tr>
                                 <!-- Trip Details Grid -->
                                 <tr>
@@ -171,14 +223,14 @@ const getHtmlTemplate = (booking: Booking, type: 'CONFIRM' | 'SUCCESS', confirmU
                     <tr>
                         <td align="center" style="background: #f8fafc; padding: 40px; color: #94a3b8; font-size: 13px; border-top: 1px solid #f1f5f9;">
                             <div style="font-weight: 800; color: #1e293b; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Prime Transfers</div>
-                            <div style="padding-bottom: 24px;">Professional Private Chauffeur Services</div>
+                            <div style="padding-bottom: 24px;">Reliable Airport & City Transfers</div>
                             <div style="width: 40px; border-top: 2px solid #e2e8f0; margin-bottom: 24px;"></div>
                             <table border="0" cellspacing="0" cellpadding="0">
                                 <tr>
                                     <td style="padding-right: 20px;"><img src="https://primetransfers.net/favicon.png" width="20" style="opacity: 0.5;"></td>
                                     <td align="left">
                                         <div style="font-size: 12px; color: #64748b;">Phone: +359 88 254 5355</div>
-                                        <div style="font-size: 12px; color: #64748b;">Email: bookings@primetransfers.net</div>
+                                        <div style="font-size: 12px; color: #64748b;">Email: transprime17@gmail.com</div>
                                     </td>
                                 </tr>
                             </table>
@@ -271,14 +323,15 @@ Deno.serve(async (req) => {
         console.log(`Booking ${confirmId} confirmed successfully. Sending notifications...`);
 
         const textDetails = formatBookingDetailsText(confirmedBooking);
-        const htmlTemplate = getHtmlTemplate(confirmedBooking, 'SUCCESS');
+        const htmlCustomer = getHtmlTemplate(confirmedBooking, 'SUCCESS', 'CUSTOMER');
+        const htmlOwner = getHtmlTemplate(confirmedBooking, 'SUCCESS', 'OWNER');
 
         // 1. Notify Customer (Final Confirmation)
         if (confirmedBooking.email) {
           await sendEmail(
             confirmedBooking.email,
             "Booking Confirmed: Prime Transfers",
-            htmlTemplate,
+            htmlCustomer,
             `Hello ${confirmedBooking.first_name},\n\nYour booking is fully confirmed! Here are your details:\n\n${textDetails}`
           );
         }
@@ -287,7 +340,7 @@ Deno.serve(async (req) => {
         await sendEmail(
           OWNER_EMAIL,
           "New Confirmed Booking Received!",
-          htmlTemplate,
+          htmlOwner,
           `A new booking has been confirmed by the customer:\n\n${textDetails}`
         );
 
@@ -318,7 +371,7 @@ Deno.serve(async (req) => {
       if (b.email) {
         const cleanUrl = SUPABASE_URL.replace(/\/$/, '');
         const confirmUrl = `${cleanUrl}/functions/v1/notify-booking?confirm=${b.id}`;
-        const htmlTemplate = getHtmlTemplate(b, 'CONFIRM', confirmUrl);
+        const htmlTemplate = getHtmlTemplate(b, 'CONFIRM', 'CUSTOMER', confirmUrl);
 
         await sendEmail(
           b.email,
