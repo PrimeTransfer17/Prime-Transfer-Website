@@ -139,7 +139,7 @@ const getHtmlTemplate = (booking: Booking, type: 'CONFIRM' | 'SUCCESS', confirmU
                                                 </td>
                                                 <td width="50%" valign="top">
                                                     <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; padding-bottom: 6px;">Passengers</div>
-                                                    <div style="font-size: 15px; font-weight: 600; color: #1e293b;">${booking.passengers} Adults</div>
+                                                    <div style="font-size: 15px; font-weight: 600; color: #1e293b;">${booking.passengers} Passengers</div>
                                                 </td>
                                             </tr>
                                             <tr><td height="24"></td></tr>
@@ -150,7 +150,7 @@ const getHtmlTemplate = (booking: Booking, type: 'CONFIRM' | 'SUCCESS', confirmU
                                                 </td>
                                                 <td width="50%" valign="top">
                                                     <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; padding-bottom: 6px;">Total Price</div>
-                                                    <div style="font-size: 20px; font-weight: 800; color: #FF5A00;">${booking.price} BGN</div>
+                                                    <div style="font-size: 20px; font-weight: 800; color: #FF5A00;">€${booking.price}</div>
                                                 </td>
                                             </tr>
                                         </table>
