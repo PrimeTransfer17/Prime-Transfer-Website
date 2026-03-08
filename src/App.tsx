@@ -1134,7 +1134,7 @@ export default function App() {
 
                 if (error) {
                   console.error('Error inserting booking:', error);
-                  alert(lang === 'bg' ? 'Възникна грешка при изпращането. Моля, опитайте отново.' : 'An error occurred while sending your request. Please try again.');
+                  alert((lang === 'bg' ? 'Възникна грешка при изпращането: ' : 'An error occurred: ') + (error.message || error.details || 'Unknown error'));
                 } else {
                   setIsBookingDetailsOpen(false);
                   setIsBooked(true);
