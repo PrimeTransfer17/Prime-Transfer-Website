@@ -35,7 +35,7 @@ interface Booking {
   status: string;
 }
 
-const formatBookingDetails = (booking: Booking): string => {
+const formatBookingDetailsText = (booking: Booking): string => {
   return `Customer details:
 - first name: ${booking.first_name || 'N/A'}
 - last name: ${booking.last_name || 'N/A'}
@@ -59,7 +59,144 @@ Vehicle details:
 - total price: ${booking.price || 'N/A'}`;
 };
 
-async function sendEmail(to: string, subject: string, text: string) {
+const getHtmlTemplate = (booking: Booking, type: 'CONFIRM' | 'SUCCESS', confirmUrl?: string) => {
+  const isSuccess = type === 'SUCCESS';
+  const statusText = isSuccess ? 'CONFIRMED' : 'ACTION REQUIRED';
+  const statusBg = isSuccess ? '#e6fcf5' : '#fff4e6';
+  const statusColor = isSuccess ? '#0ca678' : '#fd7e14';
+  const title = isSuccess ? 'Your Booking is Confirmed!' : 'Please Confirm Your Booking';
+  const subtitle = isSuccess
+    ? "Great news! Your professional transfer is all set. We've included the details below for your reference."
+    : "We've received your transfer request. Please review the details below and click the confirm button to finalize your reservation.";
+
+  const confirmBtnRow = !isSuccess && confirmUrl ? `
+    <tr>
+        <td align="center" style="padding-top: 32px; padding-bottom: 8px;">
+            <a href="${confirmUrl}" style="display: inline-block; padding: 16px 36px; background: #FF5A00; color: white; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 14px rgba(255, 90, 0, 0.3);">Confirm My Booking</a>
+        </td>
+    </tr>
+  ` : '';
+
+  const specialRequests = booking.special_requests || 'None specified';
+
+  return `
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f7f9fc; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+        <tr>
+            <td align="center">
+                <table width="600" border="0" cellspacing="0" cellpadding="0" style="background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.04);">
+                    <!-- Header -->
+                    <tr>
+                        <td align="center" style="background: #111214; padding: 40px 20px;">
+                            <img src="https://primetransfers.net/logo.png" alt="Prime Transfers" height="50" style="display: block;">
+                        </td>
+                    </tr>
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 40px;">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td style="padding-bottom: 24px;">
+                                        <span style="display: inline-block; padding: 6px 14px; border-radius: 99px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: ${statusBg}; color: ${statusColor};">${statusText}</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 28px; font-weight: 800; color: #111214; padding-bottom: 12px; letter-spacing: -0.5px;">${title}</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 16px; line-height: 1.6; color: #64748b; padding-bottom: 32px;">${subtitle}</td>
+                                </tr>
+                                <!-- Route Summary -->
+                                <tr>
+                                    <td style="background: #f8fafc; border: 1px solid #edf2f7; border-radius: 16px; padding: 24px;">
+                                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                            <tr>
+                                                <td width="30" valign="top"><div style="width: 12px; height: 12px; border-radius: 50%; background: #FF5A00; border: 3px solid #ffccb3; margin-top: 4px;"></div></td>
+                                                <td>
+                                                    <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 800; letter-spacing: 0.8px; padding-bottom: 4px;">Pickup Location</div>
+                                                    <div style="font-size: 15px; font-weight: 600; color: #1e293b;">${booking.pickup_location}</div>
+                                                </td>
+                                            </tr>
+                                            <tr><td height="12"></td><td style="border-left: 2px dashed #e2e8f0; margin-left: 14px; height: 12px;"></td></tr>
+                                            <tr>
+                                                <td width="30" valign="top"><div style="width: 12px; height: 12px; border-radius: 50%; background: #111214; border: 3px solid #cbd5e1; margin-top: 4px;"></div></td>
+                                                <td>
+                                                    <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 800; letter-spacing: 0.8px; padding-bottom: 4px;">Destination</div>
+                                                    <div style="font-size: 15px; font-weight: 600; color: #1e293b;">${booking.dropoff_location}</div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr><td height="32"></td></tr>
+                                <!-- Trip Details Grid -->
+                                <tr>
+                                    <td>
+                                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                            <tr>
+                                                <td width="50%" valign="top">
+                                                    <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; padding-bottom: 6px;">Date & Time</div>
+                                                    <div style="font-size: 15px; font-weight: 600; color: #1e293b;">${booking.pickup_date}, ${booking.pickup_time}</div>
+                                                </td>
+                                                <td width="50%" valign="top">
+                                                    <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; padding-bottom: 6px;">Passengers</div>
+                                                    <div style="font-size: 15px; font-weight: 600; color: #1e293b;">${booking.passengers} Adults</div>
+                                                </td>
+                                            </tr>
+                                            <tr><td height="24"></td></tr>
+                                            <tr>
+                                                <td width="50%" valign="top">
+                                                    <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; padding-bottom: 6px;">Vehicle Class</div>
+                                                    <div style="font-size: 15px; font-weight: 600; color: #1e293b;">${booking.vehicle_type || 'Premium Transfer'}</div>
+                                                </td>
+                                                <td width="50%" valign="top">
+                                                    <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; padding-bottom: 6px;">Total Price</div>
+                                                    <div style="font-size: 20px; font-weight: 800; color: #FF5A00;">${booking.price} BGN</div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                ${confirmBtnRow}
+                                <!-- Special Requests -->
+                                <tr>
+                                    <td style="padding-top: 32px; border-top: 1px solid #f1f5f9; margin-top: 32px;">
+                                        <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; padding-bottom: 12px;">Included Special Requests</div>
+                                        <div style="font-size: 14px; color: #475569; background: #f8fafc; padding: 20px; border-radius: 12px; line-height: 1.6;">${specialRequests}</div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <!-- Footer -->
+                    <tr>
+                        <td align="center" style="background: #f8fafc; padding: 40px; color: #94a3b8; font-size: 13px; border-top: 1px solid #f1f5f9;">
+                            <div style="font-weight: 800; color: #1e293b; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Prime Transfers</div>
+                            <div style="padding-bottom: 24px;">Professional Private Chauffeur Services</div>
+                            <div style="width: 40px; border-top: 2px solid #e2e8f0; margin-bottom: 24px;"></div>
+                            <table border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td style="padding-right: 20px;"><img src="https://primetransfers.net/favicon.png" width="20" style="opacity: 0.5;"></td>
+                                    <td align="left">
+                                        <div style="font-size: 12px; color: #64748b;">Phone: +359 88 254 5355</div>
+                                        <div style="font-size: 12px; color: #64748b;">Email: bookings@primetransfers.net</div>
+                                    </td>
+                                </tr>
+                            </table>
+                            <div style="padding-top: 32px;">
+                                <a href="https://www.instagram.com/primetrans17/" style="color: #FF5A00; text-decoration: none; font-weight: 700;">Instagram</a> &nbsp;&bull;&nbsp; 
+                                <a href="https://wa.me/359882545355" style="color: #64748b; text-decoration: none; font-weight: 700;">WhatsApp</a>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                <p style="padding-top: 24px; font-size: 11px; color: #94a3b8;">&copy; ${new Date().getFullYear()} Prime Transfers. All rights reserved.</p>
+            </td>
+        </tr>
+    </table>
+  `;
+};
+
+async function sendEmail(to: string, subject: string, html: string, text: string) {
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -71,6 +208,7 @@ async function sendEmail(to: string, subject: string, text: string) {
         from: FROM_EMAIL,
         to: to,
         subject: subject,
+        html: html,
         text: text,
       }),
     });
@@ -132,19 +270,29 @@ Deno.serve(async (req) => {
         const confirmedBooking: Booking = data[0];
         console.log(`Booking ${confirmId} confirmed successfully. Sending notifications...`);
 
-        const details = formatBookingDetails(confirmedBooking);
+        const textDetails = formatBookingDetailsText(confirmedBooking);
+        const htmlTemplate = getHtmlTemplate(confirmedBooking, 'SUCCESS');
 
         // 1. Notify Customer (Final Confirmation)
         if (confirmedBooking.email) {
-          const contactInfo = `\n\nCompany Contact Information:\nPhone: +359 88 254 5355\nEmail: bookings@primetransfers.net\nPrime Transfers`;
-          await sendEmail(confirmedBooking.email, "Booking Confirmed: Prime Transfers", `Hello ${confirmedBooking.first_name},\n\nYour booking is fully confirmed! Here are your details:\n\n${details}${contactInfo}`);
+          await sendEmail(
+            confirmedBooking.email,
+            "Booking Confirmed: Prime Transfers",
+            htmlTemplate,
+            `Hello ${confirmedBooking.first_name},\n\nYour booking is fully confirmed! Here are your details:\n\n${textDetails}`
+          );
         }
 
         // 2. Notify Owner via Email
-        await sendEmail(OWNER_EMAIL, "New Confirmed Booking Received!", `A new booking has been confirmed by the customer:\n\n${details}`);
+        await sendEmail(
+          OWNER_EMAIL,
+          "New Confirmed Booking Received!",
+          htmlTemplate,
+          `A new booking has been confirmed by the customer:\n\n${textDetails}`
+        );
 
         // 3. Notify Owner via WhatsApp
-        await sendWhatsApp(OWNER_PHONE_NUMBER, `New Confirmed Booking!\n\n${details}`);
+        await sendWhatsApp(OWNER_PHONE_NUMBER, `New Confirmed Booking!\n\n${textDetails}`);
 
         // REDIRECT to website
         return new Response(null, {
@@ -164,13 +312,20 @@ Deno.serve(async (req) => {
 
     if (payload.type === 'INSERT') {
       const b: Booking = payload.record;
-      const details = formatBookingDetails(b);
+      const textDetails = formatBookingDetailsText(b);
 
       // 1. Customer Booking Confirmation Request Email
       if (b.email) {
         const cleanUrl = SUPABASE_URL.replace(/\/$/, '');
         const confirmUrl = `${cleanUrl}/functions/v1/notify-booking?confirm=${b.id}`;
-        await sendEmail(b.email, "Action Required: Please Confirm Your Prime Transfers Booking", `Hello ${b.first_name},\n\nPlease review your booking details and click the link below to confirm your reservation:\n\n${confirmUrl}\n\n${details}`);
+        const htmlTemplate = getHtmlTemplate(b, 'CONFIRM', confirmUrl);
+
+        await sendEmail(
+          b.email,
+          "Action Required: Please Confirm Your Prime Transfers Booking",
+          htmlTemplate,
+          `Hello ${b.first_name},\n\nPlease review your booking details and click the link below to confirm your reservation:\n\n${confirmUrl}\n\n${textDetails}`
+        );
       }
     } else if (payload.type === 'UPDATE') {
       console.log("UPDATE payload received. Skipping as notifications are handled by direct GET response.");
@@ -182,3 +337,4 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: error.message }), { status: 400 });
   }
 })
+

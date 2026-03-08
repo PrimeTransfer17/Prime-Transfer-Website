@@ -1205,66 +1205,82 @@ export default function App() {
 
       {/* Final Confirmation Success Modal (From Email Link) */}
       {showFinalConfirmedModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-bg/40 backdrop-blur-xl">
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="w-full max-w-md bg-surface p-8 rounded-2xl border-border shadow-2xl text-center relative overflow-hidden"
+            className="w-full max-w-md bg-surface/90 p-10 rounded-[2.5rem] border border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] text-center relative overflow-hidden"
           >
-            <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
-            <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 className="w-8 h-8 text-green-500" />
+            {/* Success Glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-green-500/10 rounded-full blur-[80px] -z-10 animate-pulse"></div>
+
+            <div className="w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-green-500/20 shadow-[0_0_40px_rgba(34,197,94,0.1)]">
+              <CheckCircle2 className="w-12 h-12 text-green-500" />
             </div>
-            <h3 className="text-2xl font-bold font-heading mb-4">
+
+            <h3 className="text-3xl font-extrabold font-heading mb-4 tracking-tight leading-tight">
               {lang === 'bg' ? 'Резервацията е потвърдена!' : 'Booking Fully Confirmed!'}
             </h3>
-            <p className="text-text-secondary mb-8 leading-relaxed">
+
+            <p className="text-text-secondary mb-10 text-lg leading-relaxed">
               {lang === 'bg'
                 ? 'Благодарим ви! Вашата резервация е успешно потвърдена. Ще се видим скоро!'
                 : 'Thank you! Your booking has been successfully confirmed. We look forward to seeing you soon!'}
             </p>
+
             <button
               onClick={() => setShowFinalConfirmedModal(false)}
-              className="w-full bg-accent hover:bg-accent-hover text-white py-3 rounded-xl font-semibold transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full bg-green-600 hover:bg-green-500 text-white py-4 rounded-2xl font-bold text-lg transition-all shadow-[0_8px_20px_-4px_rgba(22,163,74,0.4)] hover:shadow-[0_12px_24px_-4px_rgba(22,163,74,0.6)] hover:-translate-y-1 active:translate-y-0"
             >
-              {lang === 'bg' ? 'Затвори' : 'Close'}
+              {lang === 'bg' ? 'Затвори' : 'Great, close'}
             </button>
           </motion.div>
         </div>
       )}
 
-      {/* Booking Success Modal */}
+      {/* Booking Success Modal (Initial Request Sent) */}
       {isBooked && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-bg/40 backdrop-blur-xl">
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="w-full max-w-md bg-surface p-8 rounded-2xl border-border shadow-2xl text-center relative overflow-hidden"
+            className="w-full max-w-md bg-surface/90 p-10 rounded-[2.5rem] border border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] text-center relative overflow-hidden"
           >
-            <div className="absolute top-0 left-0 w-full h-1 bg-accent"></div>
-            <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 className="w-8 h-8 text-accent" />
+            {/* Accent Glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-accent/10 rounded-full blur-[80px] -z-10 animate-pulse"></div>
+
+            <div className="w-24 h-24 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-accent/20 shadow-[0_0_40px_rgba(255,90,0,0.1)]">
+              <Mail className="w-12 h-12 text-accent" />
             </div>
-            <h3 className="text-2xl font-bold font-heading mb-4">
-              {lang === 'bg' ? 'Заявката е изпратена!' : 'Request Sent Successfully!'}
+
+            <h3 className="text-3xl font-extrabold font-heading mb-4 tracking-tight leading-tight">
+              {lang === 'bg' ? 'Заявката е изпратена!' : 'Final Step Required!'}
             </h3>
-            <p className="text-text-secondary mb-8 leading-relaxed">
+
+            <p className="text-text-secondary mb-10 text-lg leading-relaxed">
               {lang === 'bg'
                 ? 'Проверете имейла си! Изпратихме ви линк за потвърждение. Моля, кликнете върху него, за да финализирате вашата резервация.'
-                : 'Check your email! we have sent you a confirmation link. Please click it to finalize your booking.'}
+                : 'Check your email! We\'ve sent you a confirmation link. Please click it to finalize and secure your reservation.'}
             </p>
+
+            <div className="p-4 bg-accent/5 rounded-2xl border border-accent/10 mb-8">
+              <p className="text-sm text-accent font-semibold">
+                {lang === 'bg' ? 'Важно: Вашата резервация не е окончателна до потвърждаване.' : 'Important: Your reservation is pending until confirmed.'}
+              </p>
+            </div>
+
             <button
               onClick={() => setIsBooked(false)}
-              className="w-full bg-accent hover:bg-accent-hover text-white py-3 rounded-xl font-semibold transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full bg-accent hover:bg-accent-hover text-white py-4 rounded-2xl font-bold text-lg transition-all shadow-[0_8px_20px_-4px_rgba(255,90,0,0.4)] hover:shadow-[0_12px_24px_-4px_rgba(255,90,0,0.6)] hover:-translate-y-1 active:translate-y-0"
             >
-              {lang === 'bg' ? 'Добре' : 'Got it'}
+              {lang === 'bg' ? 'Добре' : 'I\'ll check my email'}
             </button>
           </motion.div>
         </div>
       )}
 
       {/* Floating WhatsApp Button */}
-      <a
+      <ar
         href="https://wa.me/359882545355"
         target="_blank"
         rel="noopener noreferrer"
