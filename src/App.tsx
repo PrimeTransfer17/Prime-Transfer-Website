@@ -1160,8 +1160,8 @@ export default function App() {
                 <input type="tel" required value={bookingPhone} onChange={e => setBookingPhone(e.target.value)} className="w-full h-12 px-4 bg-bg border-subtle rounded-lg text-[16px] focus:outline-none input-glow" />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">{lang === 'bg' ? 'Имейл' : 'Email'}</label>
-                <input type="email" value={bookingEmail} onChange={e => setBookingEmail(e.target.value)} className="w-full h-12 px-4 bg-bg border-subtle rounded-lg text-[16px] focus:outline-none input-glow" />
+                <label className="block text-sm font-medium mb-1">{lang === 'bg' ? 'Имейл *' : 'Email *'}</label>
+                <input type="email" required value={bookingEmail} onChange={e => setBookingEmail(e.target.value)} className="w-full h-12 px-4 bg-bg border-subtle rounded-lg text-[16px] focus:outline-none input-glow" />
               </div>
 
               <div>
@@ -1208,8 +1208,8 @@ export default function App() {
             </h3>
             <p className="text-text-secondary mb-8 leading-relaxed">
               {lang === 'bg'
-                ? 'Благодарим ви! Нашият екип ще прегледа детайлите и ще се свърже с вас до няколко минути за потвърждение.'
-                : 'Thank you! Our team will review the details and contact you within a few minutes for confirmation.'}
+                ? 'Проверете имейла си! Изпратихме ви линк за потвърждение. Моля, кликнете върху него, за да финализирате вашата резервация.'
+                : 'Check your email! we have sent you a confirmation link. Please click it to finalize your booking.'}
             </p>
             <button
               onClick={() => setIsBooked(false)}

@@ -133,20 +133,34 @@ serve(async (req) => {
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Booking Confirmed</title>
+            <title>Booking Confirmed | Prime Transfers</title>
             <style>
-              body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 40px 20px; background: #f9fafb; color: #111827; }
-              .container { max-width: 500px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-              .icon { color: #10B981; font-size: 48px; margin-bottom: 20px; }
-              h1 { margin-top: 0; font-size: 24px; }
-              p { color: #4B5563; line-height: 1.5; }
+              :root { --accent: #FF5A00; --bg: #f9fafb; --text: #111827; --text-secondary: #4B5563; }
+              body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 40px 20px; background: var(--bg); color: var(--text); line-height: 1.6; }
+              .container { max-width: 500px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); border-top: 5px solid var(--accent); }
+              .icon { background: #ECFDF5; color: #10B981; width: 64px; hieght: 64px; line-height: 64px; border-radius: 50%; font-size: 32px; margin: 0 auto 24px; }
+              h1 { margin-top: 0; font-size: 26px; font-weight: 800; color: var(--text); }
+              .content { margin-bottom: 30px; }
+              .divider { height: 1px; background: #E5E7EB; margin: 24px 0; }
+              .btn { display: inline-block; background: var(--accent); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: transform 0.2s; }
+              .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+              .footer { font-size: 14px; color: var(--text-secondary); margin-top: 20px; }
             </style>
           </head>
           <body>
             <div class="container">
               <div class="icon">✓</div>
-              <h1>Booking Confirmed!</h1>
-              <p>Thank you. Your booking has been successfully confirmed. You will receive a final confirmation email shortly.</p>
+              <div class="content">
+                <h1>Booking Confirmed!</h1>
+                <p>Thank you. Your booking has been successfully confirmed. You will receive a final confirmation email with all details shortly.</p>
+                <div class="divider"></div>
+                <h1>Резервацията е потвърдена!</h1>
+                <p>Благодарим ви. Вашата резервация е успешно потвърдена. След малко ще получите финален имейл с всички подробности.</p>
+              </div>
+              <a href="https://primetransfers.net" class="btn">Back to Website / Към сайта</a>
+              <div class="footer">
+                © ${new Date().getFullYear()} Prime Transfers
+              </div>
             </div>
           </body>
           </html>
