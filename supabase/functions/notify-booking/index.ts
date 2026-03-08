@@ -114,8 +114,10 @@ Deno.serve(async (req) => {
     if (req.method === 'GET') {
       const url = new URL(req.url);
       const confirmId = url.searchParams.get('confirm');
+      console.log(`GET request received for confirmation ID: ${confirmId}`);
 
       if (confirmId) {
+        console.log(`Attempting to confirm booking: ${confirmId}`);
         const { data, error } = await supabase
           .from('bookings')
           .update({ status: 'confirmed' })
@@ -127,8 +129,15 @@ Deno.serve(async (req) => {
           return new Response("Invalid confirmation link.", { status: 400 });
         }
 
-        // REDIRECT instead of returning HTML to avoid MIME/character issues
-        return Response.redirect("https://primetransfers.net?confirmed=true", 303);
+        console.log(`Booking ${confirmId} confirmed successfully. Redirecting...`);
+        // REDIRECT using standard headers for maximum compatibility
+        return new Response(null, {
+          status: 303,
+          headers: {
+            "Location": "https://primetransfers.net?confirmed=true",
+            "Cache-Control": "no-cache, no-store, must-revalidate"
+          }
+        });
       }
       return new Response("Invalid confirmation link.", { status: 400 });
     }
