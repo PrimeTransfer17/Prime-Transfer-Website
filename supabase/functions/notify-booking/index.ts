@@ -12,7 +12,7 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") || "dummy_resend_api_key";
 const META_WA_ACCESS_TOKEN = Deno.env.get("META_WA_ACCESS_TOKEN") || "dummy_meta_token";
 const META_WA_PHONE_NUMBER_ID = Deno.env.get("META_WA_PHONE_NUMBER_ID") || "dummy_phone_id";
 const OWNER_PHONE_NUMBER = Deno.env.get("OWNER_PHONE_NUMBER") || "359882545355"; // MUST be without the + sign for Meta API
-const OWNER_EMAIL = Deno.env.get("OWNER_EMAIL") || "owner@primetransfers.net";
+const OWNER_EMAIL = Deno.env.get("OWNER_EMAIL") || "transprime17@gmail.com";
 const FROM_EMAIL = "bookings@primetransfers.net";
 
 interface Booking {
